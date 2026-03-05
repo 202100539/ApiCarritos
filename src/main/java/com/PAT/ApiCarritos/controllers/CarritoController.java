@@ -1,67 +1,59 @@
 package com.PAT.ApiCarritos.controllers;
 
-
 import com.PAT.ApiCarritos.models.Carrito;
-import jakarta.validation.Valid;
+import com.PAT.ApiCarritos.models.LineaCarrito;
+import com.PAT.ApiCarritos.services.CarritoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("/carritos") //Todos los métodos de esta clase empiezan por /carritos.
+@RequestMapping("/carritos")
 public class CarritoController {
-    //Aquí metemos los metodos POST-GET-PUT-DELETE (Para hacer CRUD)
 
-    //Para cuando hagamos un GET, tenemos que tener los carritos guardados en algun sitio para poder buscarlos, eliminarlos etc.
-    //Los guardamos con valor idCarrito y clave objeto Carrito
-    private Map<Long, Carrito> baseDatos = new HashMap<>();
+    private final CarritoService carritoService;
 
+    public CarritoController(CarritoService carritoService) {
+        this.carritoService = carritoService;
+    }
+
+    // Crear carrito (el cliente manda Carrito con idCarrito, idUsuario, correoUsuario)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Carrito crea(@Valid @RequestBody Carrito carrito) //Con este argumento Spring convierte el JSON del body en un objeto Carrito.
-    {
-        baseDatos.put(carrito.idCarrito(), carrito);
-        return carrito;
+    public Carrito crearCarrito(@RequestBody Carrito carrito) {
+        return carritoService.crearCarrito(carrito.idCarrito, carrito.idUsuario, carrito.correoUsuario);
     }
 
-    //Hacemos 2 gets, uno para obtener todos los carritos y otro para obtener detalles de un carrito si le pasamos su id
-    @GetMapping
-    public Collection<Carrito> obtenerCarritos(){
-        return baseDatos.values(); // Me devuelve la clave y el valor
+    @GetMapping("/{idCarrito}")
+    public Carrito obtenerCarrito(@PathVariable Long idCarrito) {
+        return carritoService.obtenerCarrito(idCarrito);
     }
 
-    @GetMapping("/{id}") //Lo ponemos entre llaves porque el numero cambia -> No es fijo
-    public Carrito obtenerIdCarrito(@PathVariable Long id){
-        //Si no existe, lanzamos excepcion
-        if (!baseDatos.containsKey(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return baseDatos.get(id);
+    // ✅ NUEVO: añadir línea (el cliente manda idArticulo, precioUnitario, unidades)
+    @PostMapping("/{idCarrito}/lineas")
+    @ResponseStatus(HttpStatus.CREATED)
+    public LineaCarrito anadirLinea(@PathVariable Long idCarrito,
+                                    @RequestBody LineaCarrito linea) {
 
+        return carritoService.anadirLinea(idCarrito, linea.idArticulo, linea.precioUnitario, linea.unidades);
     }
 
-    @PutMapping("/{id}")
-    public Carrito actualizarCarrito(@PathVariable Long id, @Valid @RequestBody Carrito carritoActualizado){ //requestBody para coger el JSON
-
-        //Comprobamos que el carrito exista
-        if (!baseDatos.containsKey(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        baseDatos.put(id,carritoActualizado);
-        return carritoActualizado;
-    }
-    @DeleteMapping("/{id}")
+    // ✅ NUEVO: borrar línea
+    @DeleteMapping("/{idCarrito}/lineas/{idArticulo}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void borrarCarrito(@PathVariable Long id){
-        baseDatos.remove(id);
+    public void borrarLinea(@PathVariable Long idCarrito,
+                            @PathVariable Long idArticulo) {
 
+        carritoService.borrarLinea(idCarrito, idArticulo);
     }
-
-
-
+    @GetMapping
+    public List<Carrito> listarCarritos() {
+        return carritoService.listarCarritos();
+    }
+    @DeleteMapping("/{idCarrito}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void borrarCarrito(@PathVariable Long idCarrito) {
+        carritoService.borrarCarrito(idCarrito);
+    }
 }

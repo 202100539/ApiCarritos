@@ -1,27 +1,57 @@
 package com.PAT.ApiCarritos.models;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
-public record Carrito(
+@Entity // Se convierte en una tabla en BD
+public class Carrito{
 
+        @Id
+        @Column(nullable = false)
+        public Long idCarrito;
+
+        @Column(nullable = false)
         @NotNull
-        Long idCarrito,
+        public Long idUsuario;
 
-        @NotNull
-        Long idArticulo,
-
+        @Column(nullable = false)
         @NotBlank
-        String descripcion,
+        public String correoUsuario;
 
+        @Column(nullable = false)
         @NotNull
-        @Min(1)
-        Integer unidades,
+        @PositiveOrZero
+        public Double totalPrecio;
 
-        @NotNull
-        @Positive
-        Double precioFinal
+        public Carrito() {
+                // constructor vacío obligatorio para JPA
+        }
+        public Carrito(Long idCarrito, Long idUsuario, String correoUsuario, Double totalPrecio){
+                this.idCarrito = idCarrito;
+                this.idUsuario = idUsuario;
+                this.correoUsuario = correoUsuario;
+                this.totalPrecio = totalPrecio;
+        }
+}
 
-) {}
+//        @NotNull
+//        Long idCarrito,
+//
+//        @NotNull
+//        Long idArticulo,
+//
+//        @NotBlank
+//        String descripcion,
+//
+//        @NotNull
+//        @Min(1)
+//        Integer unidades,
+//
+//        @NotNull
+//        @Positive
+//        Double precioFinal
+
+
 
 //SIN VALIDACIONES:
 //public record Carrito (Long idCarrito, Long idArticulo, String descripcion, Integer unidades, Double precioFinal)
